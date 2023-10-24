@@ -12,7 +12,8 @@ def index(request):
         'movies_count': Movie.objects.all().count(),
         'actors_count': Actor.objects.all().count(),
         'free_count': Movie.objects.filter(subscription_id=1).count(),
-        'username': request.user.first_name if hasattr(request.user, 'first_name') else 'Гость'
+        'username': request.user.first_name if hasattr(request.user, 'first_name') else 'Гость',
+        'search_form': SearchForm()
     }
     # user = User.objects.create_user('User3', 'user3@mail.ru', 'useruser')
     # user.first_name = 'Vlad'
@@ -28,23 +29,58 @@ class ListMovies(generic.ListView):
     extra_context = {'title': 'Фильмы'}
     paginate_by = 6
 
+
+def search_lists(request):
+    if request.POST:
+        form = SearchForm(request.POST)
+        if form.is_valid():
+            search_text = form.cleaned_data.get('search_text').lower()
+            actors = tuple(actor for actor in Actor.objects.all() if search_text in actor.__str__().lower())
+            movies = tuple(movie for movie in Movie.objects.all() if search_text in movie.title.lower())
+            data = {
+                'actors_search': actors,
+                'movies_search': movies,
+                'search_form': SearchForm()
+            }
+            return render(request, 'movies/search_result.html', context=data)
+
+
 # def info(request, id):
 #     movie = Movie.objects.using('movies').get(id=id)
 #     return HttpResponse(movie.title)
 
 
-class DetailMovie(generic.DetailView):
+class DetailMovie(generic.FormView, generic.DetailView):
     model = Movie
     template_name = 'movies/movie_detail.html'
     context_object_name = 'movie'
-    extra_context = {'title': 'Фильм'}
+    form_class = NewCommentForm
+    success_url = reverse_lazy('done_comment')
+    context = {}
+    extra_context = {
+        'title': 'Фильм',
+        'form': NewCommentForm(),
+        'search_form': SearchForm()
+    }
+
+    def form_valid(self, form):
+        Comments.objects.create(
+            author_id=self.request.user.id,
+            movie_id=self.kwargs['pk'],
+            comment_text=form.cleaned_data.get('comment_text')
+        )
+        return super(DetailMovie, self).form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        self.context["object"] = self.object
+        return super().get_context_data(**self.context)
 
 
 class ListActors(generic.ListView):
     model = Actor
     template_name = 'movies/actor_list.html'
     context_object_name = 'actors'
-    extra_context = {'title': 'Актеры'}
+    extra_context = {'title': 'Актеры', 'search_form': SearchForm()}
     paginate_by = 20
 
 
@@ -52,14 +88,14 @@ class DetailActor(generic.DetailView):
     model = Actor
     template_name = 'movies/actor_detail.html'
     context_object_name = 'actor'
-    extra_context = {'title': 'Актер'}
+    extra_context = {'title': 'Актер', 'search_form': SearchForm()}
 
 
 class ListDirectors(generic.ListView):
     model = Director
     template_name = 'movies/director_list.html'
     context_object_name = 'directors'
-    extra_context = {'title': 'Режиссеры'}
+    extra_context = {'title': 'Режиссеры', 'search_form': SearchForm()}
     paginate_by = 20
 
 
@@ -67,12 +103,13 @@ class DetailDirector(generic.DetailView):
     model = Director
     template_name = 'movies/director_detail.html'
     context_object_name = 'director'
-    extra_context = {'title': 'Режиссер'}
+    extra_context = {'title': 'Режиссер', 'search_form': SearchForm()}
 
 
 def subscription(request):
     data = {
         'subscriptions': Subscription.objects.all(),
+        'search_form': SearchForm()
     }
     return render(request, 'subscription.html', context=data)
 
@@ -94,7 +131,8 @@ def see_movie(request, id1, id2, id3):
         'movie': Movie.objects.get(id=id1),
         'user_sub': Group.objects.get(id=sub).name,
         'movie_sub': Movie.objects.get(id=id1).subscription,
-        'permission': permission
+        'permission': permission,
+        'search_form': SearchForm()
     }
     return render(request, 'see_movie.html', context=data)
 
@@ -105,13 +143,13 @@ def buy_sub(request, type_sub):
     get_object_or_404(Group, pk=user_sub_id).user_set.remove(user)
     group = get_object_or_404(Group, pk=type_sub)
     group.user_set.add(user)
-    data = {'subscription': group}
+    data = {'subscription': group, 'search_form': SearchForm()}
     return render(request, 'buy_sub.html', data)
 
 
 def make_db(request):
     get_movies()
-    return render(request, 'index.html', context={'mark': True})
+    return render(request, 'index.html', context={'mark': True, 'search_form': SearchForm()})
 
 
 # class DetailUser(generic.DetailView):
@@ -145,7 +183,8 @@ def registration(request):
         form = SingUpForm()
     data = {
         'title': 'Регистрация',
-        'form': form
+        'form': form,
+        'search_form': SearchForm()
     }
     return render(request, 'registration/user_registration.html', context=data)
 
@@ -154,7 +193,7 @@ class RegistrationView(generic.FormView):
     form_class = SingUpForm
     template_name = 'registration/user_registration.html'
     success_url = reverse_lazy('user_profile')
-    extra_context = {'title': 'Регистрация'}
+    extra_context = {'title': 'Регистрация', 'search_form': SearchForm()}
 
     def form_valid(self, form):
         new_user: User = form.save()

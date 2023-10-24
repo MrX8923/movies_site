@@ -2,6 +2,8 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
+from .models import Comments
+
 
 class MyMailField(forms.EmailField):
     def __init__(self, **kwargs):
@@ -27,3 +29,27 @@ class SingUpForm(UserCreationForm):
                                                                      'placeholder': '********'})
         self.fields['password2'].widget = forms.PasswordInput(attrs={'autocomplete': 'new-password',
                                                                      'placeholder': '********'})
+
+
+class NewCommentForm(forms.Form):
+    comment_text = forms.CharField(
+        max_length=500,
+        widget=forms.Textarea(
+            attrs={
+                'placeholder': 'Здесь можно оставить свой комментарий'
+            }
+        ),
+        label='Комментарий'
+    )
+
+
+class SearchForm(forms.Form):
+    search_text = forms.CharField(
+        max_length=30,
+        widget=forms.TextInput(
+            attrs={
+                'placeholder': 'найди своё...'
+            }
+        ),
+        label='Поиск'
+    )

@@ -36,6 +36,17 @@
                         <li class="nav-item">
                             <a class="nav-link active menu-a" href="{% url 'logout' %}">Log out</a>
                     {% endif %}
+                    <li class="nav-item">
+                        <form action="{% url 'search' %}" method="post" enctype="multipart/form-data" novalidate>
+                            {% csrf_token %}
+                            <div class="row">
+                                {% for field in search_form %}
+                                    <div class="m-1 col {% if field.errors %} errors {% endif %}">{{ field.errors }}</div>
+                                    <div class="m-1 col {% if field.errors %} errors {% endif %}">{{ field }}</div>
+                                {% endfor %}
+                                <div class="col"><button class="see-button" type="submit">Поиск</button></div>
+                            </div>
+                        </form>
                 </ul>
             </div>
         </div>

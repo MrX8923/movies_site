@@ -1,0 +1,31 @@
+{% extends 'index.html' %}
+
+{% load static %}
+
+
+{% block content %}
+    <div class="row person-cont">
+        {% if actors_search %}
+            <div class="col">
+                <h2>Актеры</h2>
+                <ul>
+                    {% for actor in actors_search %}
+                        <li class="nav-item">
+                            <a class="person-a" href="{% url 'info_actor' pk=actor.id actor=actor %}">{{ actor }}</a>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+        {% if movies_search %}
+            <div class="col">
+                <h2>Фильмы</h2>
+                <ul>
+                    {% for movie in movies_search %}
+                        <li class="nav-item">
+                            <a class="person-a" href="{{ movie.get_absolute_url }}">{{ movie.title }}</a>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+    </div>
+{% endblock content%}

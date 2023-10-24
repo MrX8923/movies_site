@@ -1,5 +1,6 @@
 from django.db import models
 from django.urls import reverse
+from django.contrib.auth.models import User
 
 
 class Genre(models.Model):
@@ -97,4 +98,18 @@ class Movie(models.Model):
         return reverse('info', args=[self.id, self.title])
 
 
-models_tuple = (Genre, Country, AgeRating, Subscription)
+class Comments(models.Model):
+    author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    movie = models.ForeignKey(Movie, related_name='comments', on_delete=models.SET_NULL, null=True)
+    comment_text = models.TextField(max_length=500, null=True, blank=True)
+    date_published = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.date_published} by {self.author.username} for {self.movie.title}'
+
+    class Meta:
+        db_table = 'comments'
+        ordering = ('date_published',)
+
+
+models_tuple = (Genre, Country, AgeRating, Subscription, Comments)

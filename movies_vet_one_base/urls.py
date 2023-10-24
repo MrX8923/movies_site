@@ -39,5 +39,6 @@ urlpatterns = [
          name='user_profile'),
     # path('user/registration', registration, name='registration'),
     path('user/registration', RegistrationView.as_view(), name='registration'),
-
+    path('comment-done/', TemplateView.as_view(template_name='movies/done_comment.html'), name='done_comment'),
+    path('result/', search_lists, name='search'),
 ]
