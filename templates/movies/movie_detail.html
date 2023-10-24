@@ -33,17 +33,19 @@
             {% endif %}
         </div>
     </div>
-    <div class="row person-cont">
-        <form action="" method="post" enctype="multipart/form-data" novalidate>
-            {% csrf_token %}
-            {% for field in form %}
-                <div class="m-1 {% if field.errors %} errors {% endif %}">{{ field.label_tag }}</div>
-                <div class="m-1 {% if field.errors %} errors {% endif %}">{{ field.errors }}</div>
-                <div class="m-1 {% if field.errors %} errors {% endif %}">{{ field }}</div>
-            {% endfor %}
-            <button class="see-button" type="submit">Отправить комментарий</button>
-        </form>
-    </div>
+    {% if user.is_authenticated %}
+        <div class="row person-cont">
+            <form action="" method="post" enctype="multipart/form-data" novalidate>
+                {% csrf_token %}
+                {% for field in form %}
+                    <div class="m-1 {% if field.errors %} errors {% endif %}">{{ field.label_tag }}</div>
+                    <div class="m-1 {% if field.errors %} errors {% endif %}">{{ field.errors }}</div>
+                    <div class="m-1 {% if field.errors %} errors {% endif %}">{{ field }}</div>
+                {% endfor %}
+                <button class="see-button" type="submit">Отправить комментарий</button>
+            </form>
+        </div>
+    {% endif %}
     {% if movie.comments.all.count %}
         <div class="person-cont row">
             <h3>Комментарии:</h3>
